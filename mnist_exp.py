@@ -431,7 +431,7 @@ def plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise
              ['ValLoss_unreg','TestLoss_unreg','reg_val','ValLoss_reg','TestLoss_reg']):
     if txt_name is not None:
         hyp_txt=open(txt_name,'w')
-    for alg,color,linestyles,legend in zip(algs,colors,linestyles,legends):
+    for alg,color,linestyle,legend in zip(algs,colors,linestyles,legends):
         seed_i=0
         violation_percent=np.zeros(len(seeds))
         time_avg=0.0
