@@ -65,7 +65,7 @@ def prox_lambda_hardreg(lambda0,outreg_bounds):
 def prox_lambda(lambda0,outer_lr,outreg_coeff,outreg_thr):  
     #return argmin_x ||x-lambda0||^2-outer_lr*outreg_coeff*sum_i min(|xi|,outreg_thr)
     lambda1=lambda0.clone()
-    c1=outer_lr*outreg_coeff/2
+    c1=outer_lr*outreg_coeff
     c2=outreg_thr-c1
     
     i=(lambda0>-outreg_thr) & (lambda0<=-c2)
@@ -427,11 +427,11 @@ def build_val_data(args, val_index, images_list, labels_list, device):
 
     return [val_images_list, val_labels_list]
 
-def plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise_rate,txt_name=None,fig_names=\
+def plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,txt_name=None,fig_names=\
              ['ValLoss_unreg','TestLoss_unreg','reg_val','ValLoss_reg','TestLoss_reg']):
     if txt_name is not None:
         hyp_txt=open(txt_name,'w')
-    for alg,color,linestyle,legend in zip(algs,colors,linestyles,legends):
+    for alg,color,linestyle,marker,legend in zip(algs,colors,linestyles,markers,legends):
         seed_i=0
         violation_percent=np.zeros(len(seeds))
         time_avg=0.0
@@ -509,7 +509,7 @@ def plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise
             upper_loss = np.percentile(val_loss, percentile, axis=0)  
             lower_loss = np.percentile(val_loss, 100 - percentile, axis=0)
             avg_loss = np.mean(val_loss, axis=0)
-            plt.plot(x,avg_loss,color=color,linestyle=linestyle,label=legend)
+            plt.plot(x,avg_loss,color=color,linestyle=linestyle,marker=marker,label=legend)
             plt.fill_between(x,lower_loss,upper_loss, color=color,alpha=0.3)
             plt.xscale('log')
             plt.yscale('log')
@@ -519,7 +519,7 @@ def plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise
             upper_loss = np.percentile(test_loss, percentile, axis=0)  
             lower_loss = np.percentile(test_loss, 100 - percentile, axis=0)
             avg_loss = np.mean(test_loss, axis=0)
-            plt.plot(x,avg_loss,color=color,linestyle=linestyle,label=legend)
+            plt.plot(x,avg_loss,color=color,linestyle=linestyle,marker=marker,label=legend)
             plt.fill_between(x,lower_loss,upper_loss, color=color,alpha=0.3)
             plt.xscale('log')
             plt.yscale('log')
@@ -529,7 +529,7 @@ def plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise
             upper_loss = np.percentile(reg_val, percentile, axis=0)  
             lower_loss = np.percentile(reg_val, 100 - percentile, axis=0)
             avg_loss = np.mean(reg_val, axis=0)
-            plt.plot(x,avg_loss,color=color,linestyle=linestyle,label=legend)
+            plt.plot(x,avg_loss,color=color,linestyle=linestyle,marker=marker,label=legend)
             plt.fill_between(x,lower_loss,upper_loss, color=color,alpha=0.3)
             plt.xscale('log')
             plt.yscale('log')
@@ -540,7 +540,7 @@ def plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise
             upper_loss = np.percentile(val_loss, percentile, axis=0)  
             lower_loss = np.percentile(val_loss, 100 - percentile, axis=0)
             avg_loss = np.mean(val_loss, axis=0)
-            plt.plot(x,avg_loss,color=color,linestyle=linestyle,label=legend)
+            plt.plot(x,avg_loss,color=color,linestyle=linestyle,marker=marker,label=legend)
             plt.fill_between(x,lower_loss,upper_loss, color=color,alpha=0.3)
             plt.xscale('log')
             plt.yscale('log')
@@ -551,7 +551,7 @@ def plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise
             upper_loss = np.percentile(test_loss, percentile, axis=0)  
             lower_loss = np.percentile(test_loss, 100 - percentile, axis=0)
             avg_loss = np.mean(test_loss, axis=0)
-            plt.plot(x,avg_loss,color=color,linestyle=linestyle,label=legend)
+            plt.plot(x,avg_loss,color=color,linestyle=linestyle,marker=marker,label=legend)
             plt.fill_between(x,lower_loss,upper_loss, color=color,alpha=0.3)
             plt.xscale('log')
             plt.yscale('log')
@@ -642,7 +642,7 @@ hessian_q_AID=200
 hessian_q_ITD=3
 percentile=95
 noise_rates=[0.1,0.2,0.4]
-outreg_coeffs=[c/5000 for c in [0.05,0.5,5.0]]
+outreg_coeffs=[c/5000 for c in [0.5,5.0]]
 
 
 #Initialize for all algorithms
@@ -718,47 +718,48 @@ with open('./save_tb_results/test_results.txt','a') as TestResults_txt:
                 legends=['BiO-AID','BiO-AIDm','Proximal BiO-AID','Proximal BiO-AIDm']
                 colors=['red','black','lime','blue']
                 linestyles=[':','-','--','-.']
+                markers=['x','o','v','d']
                 plot_folder=folder+'complete_AID_figures'
-                plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise_rate,txt_name)
+                plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,txt_name)
                 
                 txt_name=folder+'ITDs.txt'
                 algs=['reverse-unreg','reverse-unreg-momentum','reverse-prox','reverse-prox-momentum']
                 legends=['BiO-ITD','BiO-ITDm','Proximal BiO-ITD','Proximal BiO-ITDm']
                 plot_folder=folder+'complete_ITD_figures'
-                plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise_rate,txt_name)
+                plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,txt_name)
                 
                 algs=['AID-CG-unreg','AID-CG-unreg-momentum','AID-CG-prox','AID-CG-prox-momentum']
                 legends=['BiO-AID','BiO-AIDm','Proximal Bio-AID','Proximal Bio-AIDm']
                 plot_folder=folder+'desired_figures'
                 fig_names=[None,'TestLoss_unreg_AID',None,None,None]
-                plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
+                plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
                 
                 algs=['reverse-unreg','reverse-unreg-momentum','reverse-prox','reverse-prox-momentum']
                 legends=['BiO-ITD','BiO-ITDm','Proximal Bio-ITD','Proximal Bio-ITDm']
                 fig_names=[None,'TestLoss_unreg_ITD',None,None,None]
-                plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
+                plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
                 
                 algs=['AID-CG-prox','AID-CG-prox-momentum']
                 legends=['Proximal Bio-AID','Proximal Bio-AIDm']
                 fig_names=[None,None,None,'ValLoss_reg_AID',None]
-                plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
+                plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
                 
                 algs=['reverse-prox','reverse-prox-momentum']
                 legends=['Proximal Bio-ITD','Proximal Bio-ITDm']
                 fig_names=[None,None,None,'ValLoss_reg_ITD',None]
-                plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
+                plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
                 
                 algs=['AID-CG-unreg','AID-CG-unreg-momentum']
                 legends=['Bio-AID','Bio-AIDm']
                 fig_names=['ValLoss_unreg_AID',None,None,None,None]
-                plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
+                plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
     
                 algs=['reverse-unreg','reverse-unreg-momentum']
                 legends=['Bio-ITD','Bio-ITDm']
                 fig_names=['ValLoss_unreg_ITD',None,None,None,None]
-                plot_txt(algs,legends,colors,linestyles,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
+                plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
         del train_loader
-            
+        
 #    loss_time_results[epoch+1, 0] = train_loss_avg
 #    loss_time_results[epoch+1, 1] = test_loss_avg
 #    loss_time_results[epoch+1, 2] = (end_time-start_time)
