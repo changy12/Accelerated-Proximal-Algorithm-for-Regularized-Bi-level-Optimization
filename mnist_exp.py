@@ -17,14 +17,7 @@ from ARGS import ARGS
 import matplotlib.pyplot as plt
 import pdb
 
-#def parse_args(num_classes=10,batch_size=1000,test_size=1000,inreg_coeff=0.001,outreg_bounds=[-5,5],epochs=50,iterations=200,\
-#               outer_lr=0.1,inner_lr=0.1,eta=0.5,momentum_coeff=0.0,data_path='data/',training_size=20000,validation_size=5000,\
-#               noise_rate=0.1,hessian_q=3,save_folder='',model_name='',seed=1,alg='stocBiO'):
-#    args_out=ARGS(num_classes,batch_size,test_size,epochs,iterations,outer_lr,inner_lr,eta,data_path,\
-#                  training_size,validation_size,noise_rate,hessian_q,save_folder,model_name,seed,alg)
-#    return args_out
-
-def get_data_loaders(args):   #??
+def get_data_loaders(args):   
     kwargs = {'num_workers': 0, 'pin_memory': True}
     dataset = datasets.MNIST(root=args.data_path, train=True, download=True,
                         transform=transforms.Compose([
@@ -38,7 +31,6 @@ def get_data_loaders(args):   #??
     num = int(num)
     randint = torch.randint(1, 10, (num,))   
     index = torch.randperm(args.training_size)[:num]
-#    pdb.set_trace()
     i=0
     for k in index:
         dataset[k] = (dataset[k][0], (dataset[k][1]+randint[i].item())%args.num_classes)
@@ -81,13 +73,6 @@ def prox_lambda(lambda0,outer_lr,outreg_coeff,outreg_thr):
     return lambda1
 
 def train_model(args, train_loader, test_loader, parameters0):
-#    if torch.cuda.is_available():
-#        device = torch.device('cuda')
-#    else:
-#        device = torch.device('cpu')
-
-#    parameters = torch.randn((args.num_classes, 785), requires_grad=True)
-#    parameters = nn.init.kaiming_normal_(parameters, mode='fan_out').to(device) 
     parameters=parameters0.clone()
     lambda_x = torch.zeros((args.training_size), requires_grad=True).to(device)
     
@@ -99,7 +84,6 @@ def train_model(args, train_loader, test_loader, parameters0):
                 
     loss_time_results = np.zeros((args.epochs+1, 8))
     batch_num = args.training_size//args.batch_size
-#    pdb.set_trace()
     train_loss_avg = loss_train_avg(train_loader, parameters, device, batch_num)
     val_loss_avg = loss_val_avg(train_loader, parameters, device)
     test_loss_avg, test_acc_avg = loss_test_avg(test_loader, parameters, device)
@@ -133,8 +117,8 @@ def train_model(args, train_loader, test_loader, parameters0):
         images, labels = images_list[-1], labels_list[-1]
         images = torch.reshape(images, (images.size()[0],-1)).to(device)
         images_temp, labels_temp = images[0:args.validation_size,:], labels[0:args.validation_size]
-        images = torch.cat([images_temp]*(args.training_size // args.validation_size))   #comment ??
-        labels = torch.cat([labels_temp]*(args.training_size // args.validation_size))   #comment ??
+        # images = torch.cat([images_temp]*(args.training_size // args.validation_size))
+        # labels = torch.cat([labels_temp]*(args.training_size // args.validation_size)) 
         output = torch.matmul(images, torch.t(parameters[0][:, 0:784]))+parameters[0][:, 784]
         loss = F.cross_entropy(output, labels)
         return loss
@@ -152,7 +136,6 @@ def train_model(args, train_loader, test_loader, parameters0):
     params_history = []
     train_iterator = repeat([images_list[0], labels_list[0]])  
     inner_opt = hg.GradientDescent(loss_inner, args.inner_lr, data_or_iter=train_iterator)
-#    pdb.set_trace()
     inner_opt_cg = hg.GradientDescent(loss_inner, 1., data_or_iter=train_iterator)
     outer_opt = torch.optim.SGD(lr=args.outer_lr, params=[lambda_x])
     
@@ -229,7 +212,6 @@ def train_model(args, train_loader, test_loader, parameters0):
             outer_update = stocbio([parameters], hyparams, val_data_list, args, out_f, reg_f)
 
         else:
-#            inner_losses = []
             if params_history:
                 params_history = [params_history[-1]]
             else:
@@ -239,11 +221,9 @@ def train_model(args, train_loader, test_loader, parameters0):
                 if args.momentum_coeff>0:
                     params_new=[new+args.momentum_coeff*(new-old) for old,new in zip(params_history[-1],params_new)]
                 params_history.append(params_new)
-#                inner_losses.append(inner_opt.curr_loss)
 
             final_params = params_history[-1]
             outer_opt.zero_grad()
-#            pdb.set_trace()    #??
             if 'reverse' in args.alg:
                 hg.reverse(params_history[-args.hessian_q-1:], [lambda_x], [inner_opt]*args.hessian_q, loss_outer)
             elif args.alg == 'AID-FP':
@@ -291,8 +271,6 @@ def train_model(args, train_loader, test_loader, parameters0):
             reg_val=-np.minimum(np.abs(weight),args.outreg_thr).sum()*args.outreg_coeff
         else:
             reg_val=1e+100
-#            train_loss_avg+=reg_val
-#            test_loss_avg+=reg_val
         end_time = time.time()
 
         loss_time_results[epoch+1, 0] = train_loss_avg
@@ -341,7 +319,6 @@ def train_model(args, train_loader, test_loader, parameters0):
 
 def loss_train_avg(data_loader, parameters, device, batch_num):
     loss_avg, num = 0.0, 0
-#    pdb.set_trace()
     for index, (images, labels) in enumerate(data_loader):
         if index>= batch_num:
             break
@@ -363,7 +340,7 @@ def loss_val_avg(data_loader, parameters, device):
         if index>= 2:
             break
         else:
-            images = torch.reshape(images, (images.size()[0],-1)).to(device)   #Strecth into 20000 training samples * 784 dim
+            images = torch.reshape(images, (images.size()[0],-1)).to(device)   #Strecth into 20000 validation samples * 784 dim
             labels = labels.to(device)
             loss = loss_f_function(labels, parameters, images)
             loss_avg += loss 
@@ -521,8 +498,8 @@ def plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coe
             avg_loss = np.mean(test_loss, axis=0)
             plt.plot(x,avg_loss,color=color,linestyle=linestyle,marker=marker,label=legend)
             plt.fill_between(x,lower_loss,upper_loss, color=color,alpha=0.3)
-            plt.xscale('log')
-            plt.yscale('log')
+            # plt.xscale('log')
+            # plt.yscale('log')
         
         if fig_names[2] is not None:
             plt.figure(3)
@@ -531,8 +508,8 @@ def plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coe
             avg_loss = np.mean(reg_val, axis=0)
             plt.plot(x,avg_loss,color=color,linestyle=linestyle,marker=marker,label=legend)
             plt.fill_between(x,lower_loss,upper_loss, color=color,alpha=0.3)
-            plt.xscale('log')
-            plt.yscale('log')
+            # plt.xscale('log')
+            # plt.yscale('log')
     
         if fig_names[3] is not None:
             plt.figure(4)
@@ -553,8 +530,8 @@ def plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coe
             avg_loss = np.mean(test_loss, axis=0)
             plt.plot(x,avg_loss,color=color,linestyle=linestyle,marker=marker,label=legend)
             plt.fill_between(x,lower_loss,upper_loss, color=color,alpha=0.3)
-            plt.xscale('log')
-            plt.yscale('log')
+            # plt.xscale('log')
+            # plt.yscale('log')
     
 #    print(alg,train_loss[:,-1].mean(),test_loss[:,-1].mean())
     if not os.path.isdir(plot_folder):
@@ -642,8 +619,8 @@ hessian_q_AID=200
 hessian_q_ITD=3
 percentile=95
 noise_rates=[0.1,0.2,0.4]
-outreg_coeffs=[c/5000 for c in [0.5,5.0]]
-
+# outreg_coeffs=[c/5000 for c in [0.5,5.0]]
+outreg_coeffs=[c/20000 for c in [20.0,2000.0,2e+6]]
 
 #Initialize for all algorithms
 if torch.cuda.is_available():
@@ -675,9 +652,6 @@ with open('./save_tb_results/test_results.txt','a') as TestResults_txt:
             algs=['AID-CG-unreg','AID-CG-unreg-momentum','AID-CG-prox','AID-CG-prox-momentum','reverse-unreg','reverse-unreg-momentum','reverse-prox','reverse-prox-momentum']
             num_algs=len(algs)
             for alg in algs:
-        #        if ((seed==0) or ((seed==1) and (alg==algs[0]))):   #To delete
-        #            continue
-                
                 if 'AID-CG' in alg:
                     hessian_q=hessian_q_AID
                 else:
@@ -705,7 +679,7 @@ with open('./save_tb_results/test_results.txt','a') as TestResults_txt:
                             train_loader, test_loader = get_data_loaders(args)
                         print('\n folder: '+args.save_folder+'; the '+str(k)+'-th seed')
                         loss_time_results, _, _=train_model(args, train_loader, test_loader, parameters0[k])
-                        TestResults_txt.write(str(alg)+', outer regularizer coefficient='+str(outreg_coeff)+': '+'Test accuracy='+str(loss_time_results[-1,7])+', Test loss='+str(loss_time_results[-1,1])+'\n')
+                        TestResults_txt.write(str(alg)+', outer regularizer coefficient='+str(outreg_coeff*20000)+'/20000'+': '+'Test accuracy='+str(loss_time_results[-1,7])+', Test loss='+str(loss_time_results[-1,1])+'\n')
             k+=1
             
             for outreg_coeff in outreg_coeffs:
@@ -759,12 +733,3 @@ with open('./save_tb_results/test_results.txt','a') as TestResults_txt:
                 fig_names=['ValLoss_unreg_ITD',None,None,None,None]
                 plot_txt(algs,legends,colors,linestyles,markers,plot_folder,seeds,outreg_coeff,noise_rate,None,fig_names)
         del train_loader
-        
-#    loss_time_results[epoch+1, 0] = train_loss_avg
-#    loss_time_results[epoch+1, 1] = test_loss_avg
-#    loss_time_results[epoch+1, 2] = (end_time-start_time)
-#    loss_time_results[epoch+1, 3] = grad_norm_inner         #Always 0
-#    loss_time_results[epoch+1, 4] = 1 if torch.all
-    
-#if __name__ == '__main__':
-#    main()
