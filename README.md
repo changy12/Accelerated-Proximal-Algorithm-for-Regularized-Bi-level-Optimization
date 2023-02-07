@@ -19,7 +19,11 @@ save_tb_results/noiseRate0.2_outregCoeff0.001/desired_figures
 save_tb_results/noiseRate0.4_outregCoeff0.001/desired_figures
 
 In each above folder, 
+
 ValLoss_unreg_AID: Unregularized AID with outer regularizer coefficient=gamma/20000=0
+
 ValLoss_unreg_ITD: Unregularized ITD with outer regularizer coefficient=gamma/20000=0
+
 ValLoss_reg_AID: Regularized AID with outer regularizer coefficient=gamma/20000=0.001
+
 ValLoss_reg_ITD: Regularized ITD with outer regularizer coefficient=gamma/20000=0.001
