@@ -10,7 +10,7 @@ http://proceedings.mlr.press/v139/ji21c.html
 
 Simply run mnist_exp.py and obtain results in the folder save_tb_results. 
 
-Table 1 comes from file save_tb_results/test_results.txt where "reverse" means "ITD", and outer regularizer coefficient=gamma/20000=0 (unregularized), 0.001, 0.1 and 100 with 20000 validation samples. 
+Table 1 comes from file save_tb_results/test_results.txt where "reverse" means "ITD", and outer regularizer coefficient=gamma/20000 has values in 0 (unregularized), 0.001, 0.1 and 100 with 20000 validation samples. 
 
 The subfigures of corruption rate p=0.1 (first row), 0.2 (second row), 0.4 (third row) of Figure 1 with in the above paper are respectively given by the following folders ("outregCoeff0.001" means outer regularizer coefficient=gamma/20000=0.001 with 20000 validation samples):
 
